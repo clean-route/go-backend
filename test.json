@@ -1,0 +1,7 @@
+{
+  "source": [1, 2],
+  "destination": [3, 4],
+  "delay_code": 3,
+  "mode": "car",
+  "route_preference": "shortest"
+}
