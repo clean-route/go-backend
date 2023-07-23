@@ -2,6 +2,6 @@
   "source": [79.235323,24.458323],
   "destination": [80.235754,25.458009],
   "delay_code": 3,
-  "mode": "car",
+  "mode": "driving-traffic",
   "route_preference": "shortest"
 }
