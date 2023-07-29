@@ -77,9 +77,11 @@ type Route struct {
 	Distance        float64    `json:"distance"`
 	Legs            []Leg      `json:"legs"`
 	Geometry        Geometry   `json:"geometry"`
+	TotalEnergy     float64    `json:"total_energy"`
+	TotalExposure   float64    `json:"total_exposure"`
 }
 
-type Routes struct {
+type RouteData struct {
 	Routes []Route `json:"routes"`
 	Code   string  `json:"code"`
 	UUID   string  `json:"uuid"`

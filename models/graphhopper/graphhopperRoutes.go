@@ -1,7 +1,7 @@
 package models
 
 type Waypoint struct {
-	Type        string    `json:"type"`
+	Type        string        `json:"type"`
 	Coordinates []Coordinates `json:"coordinates"`
 }
 
@@ -31,6 +31,8 @@ type Path struct {
 	Ascend           float64                `json:"ascend"`
 	Descend          float64                `json:"descend"`
 	SnappedWaypoints Waypoint               `json:"snapped_waypoints"`
+	TotalEnergy      float64                `json:"total_energy"`
+	TotalExposure    float64                `json:"total_exposure"`
 }
 
 type Hint struct {

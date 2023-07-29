@@ -9,10 +9,10 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	graphhopper "github.com/sadityakumar9211/clean-route-backend/models/graphhopper"
 	mapbox "github.com/sadityakumar9211/clean-route-backend/models/mapbox"
-
-	"github.com/gin-gonic/gin"
+	"github.com/sadityakumar9211/clean-route-backend/utils"
 	"github.com/spf13/viper"
 )
 
@@ -24,7 +24,7 @@ type formData struct {
 	RoutePreference string     `json:"route_preference,omitempty"`
 }
 
-func findMapboxRoute(source [2]float64, destination [2]float64, delayCode uint8) mapbox.Routes {
+func findMapboxRoute(source [2]float64, destination [2]float64, delayCode uint8) mapbox.RouteData {
 	baseUrl := "https://api.mapbox.com/directions/v5/mapbox/driving-traffic/" + fmt.Sprintf("%f,%f;%f,%f", source[0], source[1], destination[0], destination[1])
 
 	mapboxAccessToken, mapboxAccessTokenError := viper.Get("MAPBOX_API_KEY").(string)
@@ -43,8 +43,6 @@ func findMapboxRoute(source [2]float64, destination [2]float64, delayCode uint8)
 	params.Add("access_token", mapboxAccessToken)
 	params.Add("depart_at", departureTime)
 
-	fmt.Println(params)
-
 	url := baseUrl + "?" + params.Encode()
 
 	resp, err := http.Get(url)
@@ -54,14 +52,16 @@ func findMapboxRoute(source [2]float64, destination [2]float64, delayCode uint8)
 	body, err := io.ReadAll(resp.Body)
 	checkErr(err)
 
-	var routes mapbox.Routes
+	var routes mapbox.RouteData
 
 	err = json.Unmarshal([]byte(body), &routes)
 	if err != nil {
-		log.Fatalf("Error while unmarshling JSON: ", err)
+		log.Fatal("Error while unmarshling JSON: ", err)
 	}
 
 	fmt.Println("Distance", routes.Routes[0].Distance)
+	fmt.Println("Total Exposure: ", routes.Routes[0].TotalExposure)
+	fmt.Println("Total Energy: ", routes.Routes[0].TotalEnergy)
 	fmt.Println("Code:", routes.Code)
 	fmt.Println("UUID:", routes.UUID)
 	return routes
@@ -128,20 +128,33 @@ func findRoute(c *gin.Context) {
 
 	if mode == "driving-traffic" && (routePref == "shortest" || routePref == "fastest" || routePref == "balanced") {
 		// Calling Mapbox API
-		var routes mapbox.Routes = findMapboxRoute(source, destination, delayCode)
-		// Perform calculations and return the best path
-		// Calculations will be based on Route Preference
+		var routes mapbox.RouteData = findMapboxRoute(source, destination, delayCode)
+		// Finding the energy of each routes and exposure
 
-		c.IndentedJSON(http.StatusOK, routes.Routes)
+		// Exposure
+		for i := 0; i < len(routes.Routes); i ++  {
+			routes.Routes[i] = utils.CalculateRouteExposureMapbox(routes.Routes[i], delayCode)
+		}
+
+		// routes.Routes = utils.CalculateRouteExposureMapbox(routes.Routes)
+
+		// Perform calculations and return the best path
+
+
+		// Calculations will be based on Route Preference
+		c.IndentedJSON(http.StatusOK, routes)
 	} else {
 		// Calling GraphHopper API
 		var routes graphhopper.RouteData = findGraphhopperRoute(source, destination, delayCode, mode)
+		fmt.Println(routes)
 		// Perform calculation and return the best path
 		// Calculations will be based on Route Preference
 
-		c.IndentedJSON(http.StatusOK, routes.Paths)
+		c.IndentedJSON(http.StatusOK, routes)
 	}
 }
+
+//
 
 func findAllRoutes(c *gin.Context) {
 	// c.IndentedJSON(http.StatusOK, books)
