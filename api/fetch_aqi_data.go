@@ -14,7 +14,7 @@ import (
 )
 
 func FetchAQIData(location []float64, deplayCode uint8) (float64, error) {
-	baseUrl := "https://api.waqi.info/feed/geo:" + fmt.Sprintf("%f;%f/?", location[1], location[2])
+	baseUrl := "https://api.waqi.info/feed/geo:" + fmt.Sprintf("%f;%f/?", location[1], location[0])
 
 	waqiAccessToken, waqiAccessTokenError := viper.Get("WAQI_API_KEY").(string)
 	if !waqiAccessTokenError {
@@ -56,7 +56,7 @@ func FetchAQIData(location []float64, deplayCode uint8) (float64, error) {
 	*/
 
 
-	
+
 	if waqiResponse.Status != "ok" {
 		return 0, errors.New("WAQI response is not 'OK' but: " +  waqiResponse.Status)
 	} else{

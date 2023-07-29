@@ -73,11 +73,10 @@ func CalculateRouteExposureMapbox(route mapbox.Route, delayCode uint8) mapbox.Ro
 		aqiData, err := api.FetchAQIData(routePoints[j], delayCode)
 		checkErrNil(err)
 
-		fmt.Println(aqiData)
+		fmt.Println("The PM 2.5 concentration: ", aqiData)
 		// this will cause error.
-		totalRouteExposure += (aqiData) / 36000 // converting time to hours
+		totalRouteExposure += (aqiData * routePointTime[j]) / 3600 // converting time to hours
 
-		fmt.Printf("The total Exposure: %v", totalRouteExposure)
 	}
 
 	route.TotalExposure = totalRouteExposure
