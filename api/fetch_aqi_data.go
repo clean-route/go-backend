@@ -13,7 +13,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-func FetchAQIData(location []float64, deplayCode uint8) (float64, error) {
+func FetchAQIData(location []float64, delayCode uint8) (float64, error) {
 	baseUrl := "https://api.waqi.info/feed/geo:" + fmt.Sprintf("%f;%f/?", location[1], location[0])
 
 	waqiAccessToken, waqiAccessTokenError := viper.Get("WAQI_API_KEY").(string)
@@ -24,9 +24,9 @@ func FetchAQIData(location []float64, deplayCode uint8) (float64, error) {
 	params := url.Values{}
 	params.Add("token", waqiAccessToken)
 
-	url := baseUrl + params.Encode()
+	waqiUrl := baseUrl + params.Encode()
 
-	resp, err := http.Get(url)
+	resp, err := http.Get(waqiUrl)
 	checkErrNil(err)
 	defer resp.Body.Close()
 
@@ -40,27 +40,22 @@ func FetchAQIData(location []float64, deplayCode uint8) (float64, error) {
 		log.Fatal("Error while unmarshling JSON: ", err)
 	}
 
-
-
-
-	// Currently not utilizing the delayCode - no forecasting till now. 
-	// Will have to to update from this part onwards to include: 
+	// Currently not utilizing the delayCode - no forecasting till now.
+	// Will have to to update from this part onwards to include:
 	/*
-	1. API call to fetch the weather data from darksky or similary apis
-		- relative humidity
-		- wind speed
-		- wind direction
-		- temperature
-		- we need these current and forecasted both the values 
-	2. We need to make api call to AWS Sagemaker and get the forecasted aqi value. 
+		1. API call to fetch the weather data from darksky or similary apis
+			- relative humidity
+			- wind speed
+			- wind direction
+			- temperature
+			- we need these current and forecasted both the values
 	*/
-
-
+	// 2. We need to make api call to AWS Sagemaker and get the forecasted aqi value.
 
 	if waqiResponse.Status != "ok" {
-		return 0, errors.New("WAQI response is not 'OK' but: " +  waqiResponse.Status)
-	} else{
-		return waqiResponse.Data.IAQI["pm25"].V, nil 
+		return 0, errors.New("WAQI response is not 'OK' but: " + waqiResponse.Status)
+	} else {
+		return waqiResponse.Data.IAQI["pm25"].V, nil
 	}
 }
 
