@@ -37,6 +37,10 @@ func GetPredictedPm25(inputFeatures models.FeatureVector, delayCode uint8) (floa
 	resp, err := client.Do(r)
 	checkErrNil(err)
 
+	if resp.StatusCode != http.StatusOK{
+		log.Fatal("The Amazon EC2 instance is not responding...Got status code: ", resp.StatusCode)
+	}
+
 	defer resp.Body.Close()
 	// fmt.Println("After the Request...")
 	post := &Post{}

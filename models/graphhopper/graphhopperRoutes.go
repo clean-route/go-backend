@@ -50,3 +50,16 @@ type RouteData struct {
 	Info  Info   `json:"info"`
 	Paths []Path `json:"paths"`
 }
+
+type RouteList struct {
+	Source      []float64 `json:"source"`
+	Destination []float64 `json:"destination"`
+	DelayCode   uint8     `json:"delayCode"`
+	Mode        string    `json:"mode"`
+	RoutePref   string    `json:"route_preference"`
+	Fastest     Path     `json:"fastest"`
+	Shortest    Path     `json:"shortest"`
+	Leap        Path     `json:"leap"`
+	Lco2        Path     `json:"lco2"`
+	Balanced    Path     `json:"balanced"`
+}

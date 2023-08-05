@@ -1,3 +1,5 @@
+// There is no car mode input -- it is by default driving-traffic
+
 package main
 
 import (
@@ -48,6 +50,10 @@ func findMapboxRoute(source [2]float64, destination [2]float64, delayCode uint8)
 
 	resp, err := http.Get(url)
 	checkErrNil(err)
+
+	if resp.StatusCode != http.StatusOK {
+		log.Fatal("Error while calling Mapbox API", err)
+	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
@@ -140,12 +146,13 @@ func findRoute(c *gin.Context) {
 		}
 		var energy_route graphhopper.RouteData = findGraphhopperRoute(source, destination, mode)
 
+		// aligning the routes based on distance measure
 		sort.SliceStable(energy_route.Paths, func(i, j int) bool {
-			return energy_route.Paths[i].Time < energy_route.Paths[j].Time
+			return energy_route.Paths[i].Distance < energy_route.Paths[j].Distance
 		})
 
 		sort.SliceStable(routes.Routes, func(i, j int) bool {
-			return routes.Routes[i].Duration < routes.Routes[j].Duration
+			return routes.Routes[i].Distance < routes.Routes[j].Distance
 		})
 
 		// Exposure and Energy
@@ -160,7 +167,14 @@ func findRoute(c *gin.Context) {
 		// fmt.Println("I was here...")
 		// Perform calculations and return the best path
 		if routePref == "fastest" {
-			c.IndentedJSON(http.StatusOK, routes.Routes[0]) // returning the fastest route
+			index := 0
+			for i :=0; i< len(routes.Routes); i++ {
+				if routes.Routes[i].Duration < routes.Routes[index].Duration {
+					index = i
+				}
+			}
+
+			c.IndentedJSON(http.StatusOK, routes.Routes[index]) // returning the fastest route
 			return
 		} else if routePref == "balanced" {
 			// If we have only one path in the result of API call
@@ -283,7 +297,227 @@ func findRoute(c *gin.Context) {
 //
 
 func findAllRoutes(c *gin.Context) {
-	// c.IndentedJSON(http.StatusOK, books)
+	// This is where we will find all the routes and return the result.
+	fmt.Println("################ Inside Get All Routes ############")
+	var queryData formData
+	if err := c.BindJSON(&queryData); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	fmt.Println(queryData)
+
+	source := queryData.Source
+	destination := queryData.Destination
+	delayCode := queryData.DelayCode
+	mode := queryData.Mode
+	routePref := queryData.RoutePreference
+
+	// find the mapbox and graphhopper routes and then based on the mode and routePref sort and select the best route and return the route.
+	// But there is only mode and the routePref is all (i.e.)
+	// Mode: Car and Motorbike
+
+	// for car - fastest and balanced, I will need the mapbox routes
+
+	// in all other cases, I will need both mapbox and graphhopper routes
+
+	if mode == "scooter" {
+		// find the graphhopper route
+		fmt.Println("@@@@@@@@@@@@@ Finding the route for Motorbike @@@@@@@@@@@@@@@@")
+		var routes graphhopper.RouteData = findGraphhopperRoute(source, destination, mode)
+		for i := 0; i < len(routes.Paths); i++ {
+			routes.Paths[i] = utils.CalculateRouteExposureGraphhopper(routes.Paths[i], delayCode)
+			routes.Paths[i].TotalEnergy = utils.CalculateRouteEnergy(routes.Paths[i], mode)
+			fmt.Println("Distance: ", routes.Paths[i].Distance)
+			fmt.Println("Duration: ", routes.Paths[i].Time)
+			fmt.Println("Total Exposure: ", routes.Paths[i].TotalExposure)
+			fmt.Println("Total Energy: ", routes.Paths[i].TotalEnergy)
+		}
+
+		var routeList graphhopper.RouteList
+
+		routeList.Source = source[:]
+		routeList.Destination = destination[:]
+		routeList.DelayCode = delayCode
+		routeList.Mode = mode
+		routeList.RoutePref = routePref
+
+		// for fastest route
+		var index int
+		index = 0
+		for i := 0; i < len(routes.Paths); i++ {
+			if routes.Paths[i].Time < routes.Paths[index].Time {
+				index = i
+			}
+		}
+		routeList.Fastest = routes.Paths[index]
+
+		// for shortest route
+		index = 0
+		for i := 0; i < len(routes.Paths); i++ {
+			if routes.Paths[i].Distance < routes.Paths[index].Distance {
+				index = i
+			}
+		}
+		routeList.Shortest = routes.Paths[index]
+
+		// for leap route
+		index = 0
+		for i := 0; i < len(routes.Paths); i++ {
+			if routes.Paths[i].TotalExposure < routes.Paths[index].TotalExposure {
+				index = i
+			}
+		}
+		routeList.Leap = routes.Paths[index]
+
+		// for lco2 route
+		index = 0
+		for i := 0; i < len(routes.Paths); i++ {
+			if routes.Paths[i].TotalEnergy < routes.Paths[index].TotalEnergy {
+				index = i
+			}
+		}
+		routeList.Lco2 = routes.Paths[index]
+
+		// for balanced route
+
+		// First find the two fastest paths then find the path with the smallest exposure
+
+		// If we have only one path in the result of API call
+		if len(routes.Paths) == 1 {
+			routeList.Balanced = routes.Paths[0]
+		}
+
+		// If we have two paths
+		if len(routes.Paths) == 2 {
+			// if the diff between two paths is less than 5 min or 500 metres, then
+			if routes.Paths[0].Time-routes.Paths[1].Time < 5*60*1000 && routes.Paths[0].Distance-routes.Paths[1].Distance < 500 {
+				// return path with least exposure
+				if routes.Paths[0].TotalExposure < routes.Paths[1].TotalExposure {
+					routeList.Balanced = routes.Paths[0]
+				} else {
+					routeList.Balanced = routes.Paths[1]
+				}
+			} else {
+				if routes.Paths[0].Time < routes.Paths[1].Time {
+					routeList.Balanced = routes.Paths[0]
+				} else {
+					routeList.Balanced = routes.Paths[1]
+				}
+			}
+		}
+
+		// sorting all the routes based on exposure
+		sort.Slice(routes.Paths, func(i, j int) bool {
+			return routes.Paths[i].TotalExposure > routes.Paths[i].TotalExposure
+		})
+
+		// sorting top 3 routes based on time
+		sort.SliceStable(routes.Paths[:3], func(i, j int) bool {
+			return routes.Paths[i].Time > routes.Paths[j].Time
+		})
+
+		// sorting the top two balanced(time, exposure) routes with energy
+		sort.Slice(routes.Paths[:2], func(i, j int) bool {
+			return routes.Paths[i].TotalEnergy > routes.Paths[i].TotalEnergy
+		})
+
+		routeList.Balanced = routes.Paths[0]
+
+		c.IndentedJSON(http.StatusOK, routeList)
+
+	} else if mode == "driving-traffic" {
+		fmt.Println("@@@@@@@@@@@@@ Finding the route for Car @@@@@@@@@@@@@@@@")
+		var mapboxRoute mapbox.RouteData = findMapboxRoute(source, destination, delayCode)
+
+		var graphhopperRoute graphhopper.RouteData = findGraphhopperRoute(source, destination, "car")
+
+		// Exposure and Energy calculations
+		for i := 0; i < len(mapboxRoute.Routes); i++ {
+			mapboxRoute.Routes[i] = utils.CalculateRouteExposureMapbox(mapboxRoute.Routes[i], delayCode)
+			graphhopperRoute.Paths[i].TotalExposure = mapboxRoute.Routes[i].TotalExposure
+			
+			mapboxRoute.Routes[i].Duration *= 1000
+			
+			mapboxRoute.Routes[i].TotalEnergy = utils.CalculateRouteEnergy(graphhopperRoute.Paths[i], mode)
+			graphhopperRoute.Paths[i].TotalEnergy = mapboxRoute.Routes[i].TotalEnergy
+
+			fmt.Println("Total Exposure: ", mapboxRoute.Routes[i].TotalExposure)
+			fmt.Println("Total Energy: ", mapboxRoute.Routes[i].TotalEnergy)
+			fmt.Println("Distance: ", mapboxRoute.Routes[i].Distance)
+			fmt.Println("Duration: ", mapboxRoute.Routes[i].Duration)
+		}
+
+		var routeList mapbox.RouteList
+
+		routeList.Source = source[:]
+		routeList.Destination = destination[:]
+		routeList.DelayCode = delayCode
+		routeList.Mode = mode
+		routeList.RoutePref = routePref
+
+		// for fastest route - will consider the mapbox route
+		var index int
+		for i := 0; i < len(mapboxRoute.Routes); i++ {
+			if mapboxRoute.Routes[i].Duration < mapboxRoute.Routes[index].Duration {
+				index = i
+			}
+		}
+		routeList.Fastest = mapboxRoute.Routes[index]
+
+		// for shortest route - also will consider the mapbox route 
+		index = 0
+		for i:= 0; i<len(mapboxRoute.Routes); i++ {
+			if mapboxRoute.Routes[i].Distance < mapboxRoute.Routes[i].Distance {
+				index = i
+			}
+		}
+
+		routeList.Shortest = mapboxRoute.Routes[index]
+
+		// for leap route - will consider the graphhopper route
+		index = 0
+		for i:= 0; i<len(graphhopperRoute.Paths); i++ {
+			if graphhopperRoute.Paths[i].TotalExposure < graphhopperRoute.Paths[i].TotalExposure {
+				index = i
+			}
+		}
+		routeList.LeapG = graphhopperRoute.Paths[index]
+
+		// for lco2 route - will consider the graphhopper route
+		index = 0
+		for i:= 0; i<len(graphhopperRoute.Paths); i++ {
+			if graphhopperRoute.Paths[i].TotalEnergy < graphhopperRoute.Paths[i].TotalEnergy {
+				index = i
+			}
+		}
+		routeList.Lco2G = graphhopperRoute.Paths[index]
+
+		// for balanced route - will consider the mapbox route
+		if len(mapboxRoute.Routes) == 1 {
+			routeList.Balanced = mapboxRoute.Routes[0]
+		}
+
+		// If we have two paths
+		if len(mapboxRoute.Routes) == 2 {
+			// If the difference between paths is less than 5 min or 500 metres, then we will consider paths will least exposure, 
+			// Otherwise path with least time will be the balanced path
+			if mapboxRoute.Routes[0].Duration - mapboxRoute.Routes[1].Duration < 5 * 60 * 1000 && mapboxRoute.Routes[0].Distance - mapboxRoute.Routes[1].Distance < 500 {
+				if mapboxRoute.Routes[0].TotalExposure < mapboxRoute.Routes[1].TotalExposure {
+					routeList.Balanced = mapboxRoute.Routes[0]
+				} else {
+					routeList.Balanced = mapboxRoute.Routes[1]
+				}
+			} else {
+				if mapboxRoute.Routes[0].Duration < mapboxRoute.Routes[1].Duration {
+					routeList.Balanced = mapboxRoute.Routes[0]
+				} else {
+					routeList.Balanced = mapboxRoute.Routes[1]
+				}
+			}
+		}
+
+		c.IndentedJSON(http.StatusOK, routeList)
+	}
 }
 
 func main() {
@@ -296,7 +530,7 @@ func main() {
 	router := gin.Default()
 	// router.GET("/books", getBooks)
 	router.POST("/route", findRoute)
-	router.GET("all-routes", findAllRoutes)
+	router.POST("all-routes", findAllRoutes)
 	router.Run("localhost:8080")
 }
 

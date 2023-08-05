@@ -1,5 +1,7 @@
 package models
 
+import models "github.com/sadityakumar9211/clean-route-backend/models/graphhopper"
+
 // Define structs to represent the JSON data
 
 type Waypoint struct {
@@ -85,4 +87,19 @@ type RouteData struct {
 	Routes []Route `json:"routes"`
 	Code   string  `json:"code"`
 	UUID   string  `json:"uuid"`
+}
+
+type RouteList struct {
+	Source      []float64   `json:"source"`
+	Destination []float64   `json:"destination"`
+	DelayCode   uint8       `json:"delayCode"`
+	Mode        string      `json:"mode"`
+	RoutePref   string      `json:"route_preference"`
+	Fastest     Route       `json:"fastest"`
+	Shortest    Route       `json:"shortest"`
+	Leap        Route       `json:"leap"`
+	Lco2        Route       `json:"lco2"`
+	Balanced    Route       `json:"balanced"`
+	LeapG       models.Path `json:"leap_grahhopper"`
+	Lco2G       models.Path `json:"lco2_graphhopper"`
 }
