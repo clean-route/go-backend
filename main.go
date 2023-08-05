@@ -155,7 +155,7 @@ func findRoute(c *gin.Context) {
 			routes.Routes[i].TotalEnergy = utils.CalculateRouteEnergy(energy_route.Paths[i], mode)
 			fmt.Println("Total Energy: ")
 		}
-		fmt.Println("I was here...")
+		// fmt.Println("I was here...")
 		// Perform calculations and return the best path
 		if routePref == "fastest" {
 			c.IndentedJSON(http.StatusOK, routes.Routes[0]) // returning the fastest route
@@ -201,6 +201,7 @@ func findRoute(c *gin.Context) {
 			sort.SliceStable(routes.Paths, func(i, j int) bool {
 				return routes.Paths[i].Distance < routes.Paths[j].Distance
 			})
+			// fmt.Println(routes)
 			c.IndentedJSON(http.StatusOK, routes.Paths[0])
 			return
 		} else if routePref == "fastest" {
@@ -215,6 +216,7 @@ func findRoute(c *gin.Context) {
 			sort.SliceStable(routes.Paths, func(i, j int) bool {
 				return routes.Paths[i].TotalExposure < routes.Paths[j].TotalExposure
 			})
+			// fmt.Println(routes)
 			c.IndentedJSON(http.StatusOK, routes.Paths[0])
 			return
 		} else if routePref == "emission" {

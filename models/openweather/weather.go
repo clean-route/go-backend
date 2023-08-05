@@ -29,13 +29,13 @@ type CurrentWeather struct {
 
 // MinutelyData represents the minutely data in the JSON
 type MinutelyData struct {
-	Dt            int64 `json:"dt"`
-	Precipitation int   `json:"precipitation"`
+	Dt            uint64 `json:"dt"`
+	Precipitation float64   `json:"precipitation"`
 }
 
 // HourlyData represents the hourly data in the JSON
 type HourlyData struct {
-	Dt               int64     `json:"dt"`
+	Dt               uint64     `json:"dt"`
 	Temp             float64   `json:"temp"`
 	FeelsLike        float64   `json:"feels_like"`
 	Pressure         float64   `json:"pressure"`

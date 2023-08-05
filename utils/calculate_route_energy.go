@@ -1,8 +1,6 @@
 package utils
 
 import (
-	"fmt"
-
 	graphhopper "github.com/sadityakumar9211/clean-route-backend/models/graphhopper"
 )
 
@@ -42,6 +40,6 @@ func CalculateRouteEnergy(route graphhopper.Path, mode string) float64 {
 		// Total Energy = Potential + Kinetic
 		totalEnergy += totalPotentialEnergy + totalKineticEnergy
 	}
-	fmt.Println("Total Energy: ", totalEnergy / 1000)
+	// fmt.Println("Total Energy: ", totalEnergy / 1000)
 	return totalEnergy / 1000
 }

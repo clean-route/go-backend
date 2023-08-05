@@ -3,7 +3,6 @@ package api
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 
@@ -22,7 +21,7 @@ func GetPredictedPm25(inputFeatures models.FeatureVector, delayCode uint8) (floa
 		log.Fatalf("Invalid type assertion")
 	}
 
-	fmt.Println("The Query url is: ", awsModelEndpoint)
+	// fmt.Println("The Query url is: ", awsModelEndpoint)
 
 	inputFeatures.DelayCode = delayCode
 	jsonData, err := json.Marshal(inputFeatures)
@@ -33,12 +32,13 @@ func GetPredictedPm25(inputFeatures models.FeatureVector, delayCode uint8) (floa
 
 	r.Header.Add("Content-Type", "application/json")
 
+	// fmt.Println("Just before making the request...")
 	client := &http.Client{}
 	resp, err := client.Do(r)
 	checkErrNil(err)
 
 	defer resp.Body.Close()
-
+	// fmt.Println("After the Request...")
 	post := &Post{}
 
 	err = json.NewDecoder(resp.Body).Decode(post)
@@ -49,5 +49,7 @@ func GetPredictedPm25(inputFeatures models.FeatureVector, delayCode uint8) (floa
 		return 0, err
 	}
 
+	// fmt.Println("++++++++++++++ Inside the get predicted pm2.5 ++++++++++++++++")
+	// fmt.Println("Acutal: ", inputFeatures.IPM, "Predicted: ", post.FPM)
 	return post.FPM, nil
 }

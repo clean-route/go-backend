@@ -3,5 +3,5 @@
   "destination": [85.47993, 23.484087],
   "delay_code": 3,
   "mode": "car",
-  "route_preference": "fastest"
+  "route_preference": "shortest"
 }

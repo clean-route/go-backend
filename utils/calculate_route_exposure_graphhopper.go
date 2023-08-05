@@ -22,7 +22,7 @@ func CalculateRouteExposureGraphhopper(route graphhopper.Path, delayCode uint8) 
 			if skippedDistance >= 2 {
 				index := steps[j].Interval[1]
 				routePoints = append(routePoints, routeCoordinates[index][:])
-				routePointTime = append(routePointTime, float64(steps[j].Time)*0.001*skippedTime)
+				routePointTime = append(routePointTime, (float64(steps[j].Time)*0.001)+skippedTime)
 			} else {
 				skippedDistance += steps[j].Distance * 0.001
 				skippedTime += float64(steps[j].Time) * 0.001
@@ -57,9 +57,9 @@ func CalculateRouteExposureGraphhopper(route graphhopper.Path, delayCode uint8) 
 
 	// for each route the points are adding in this array
 
-	fmt.Println(routePoints)
+	// fmt.Println(routePoints)
 	fmt.Println("The total points taken in the route is: ", len(routePoints))
-	fmt.Println(routePointTime)
+	// fmt.Println(routePointTime)
 
 	if delayCode == 0 {
 		var totalRouteExposure float64
@@ -75,7 +75,7 @@ func CalculateRouteExposureGraphhopper(route graphhopper.Path, delayCode uint8) 
 			totalRouteExposure += pm25 * routePointTime[j] / 3600 // converting time to hours
 		}
 		route.TotalExposure = totalRouteExposure
-		fmt.Println("The total exposure for the route is: ", totalRouteExposure)
+		// fmt.Println("************The total exposure for the route is**********: ", totalRouteExposure)
 		return route
 	}
 
@@ -99,18 +99,16 @@ func CalculateRouteExposureGraphhopper(route graphhopper.Path, delayCode uint8) 
 		checkErrNil(err)
 		inputFeatures.IPM = pm25
 
-		fmt.Println("The PM 2.5 concentration: ", inputFeatures.IPM)
-		fmt.Println("The input feature is: ", inputFeatures)
-
 		// call the aws sagemaker and get the predicted value of pm25 concentration.
 		fpm, err := api.GetPredictedPm25(inputFeatures, delayCode)
 		checkErrNil(err)
 
 		// calculate the total exposure based on that.
+		print("\n\nPartial Exposure: ", totalRouteExposure, " # ", fpm, " # ", routePointTime[j])
 		totalRouteExposure += fpm * routePointTime[j] / 3600 // converting time to hours
 	}
 
 	route.TotalExposure = totalRouteExposure
-	fmt.Println("The total exposure for the route is: ", totalRouteExposure)
+	fmt.Println("&&&&&&&&&&&&&&&&The total exposure for the route is&&&&&&&&&&&&&&&: ", totalRouteExposure)
 	return route
 }
