@@ -153,7 +153,9 @@ func findRoute(c *gin.Context) {
 			routes.Routes[i] = utils.CalculateRouteExposureMapbox(routes.Routes[i], delayCode)
 			routes.Routes[i].Duration *= 1000
 			routes.Routes[i].TotalEnergy = utils.CalculateRouteEnergy(energy_route.Paths[i], mode)
-			fmt.Println("Total Energy: ")
+			fmt.Println("Total Energy: ", routes.Routes[i].TotalEnergy)
+			fmt.Println("Distance: ", routes.Routes[i].Distance)
+			fmt.Println("Duration: ", routes.Routes[i].Duration)
 		}
 		// fmt.Println("I was here...")
 		// Perform calculations and return the best path

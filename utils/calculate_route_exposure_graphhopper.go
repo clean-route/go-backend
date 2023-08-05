@@ -79,34 +79,36 @@ func CalculateRouteExposureGraphhopper(route graphhopper.Path, delayCode uint8) 
 		return route
 	}
 
-	// Fetch the weather data for source and destination and we will use the
-	// average of the both for any point in route to get the weather measurement
-	sourceWeatherData := api.FetchWeatherData(routePoints[0])
-	sourceWeatherData.Current.RelativeHumidity = GetRelativeHumidity(sourceWeatherData.Current.DewPoint, sourceWeatherData.Current.Temp)
-	destinationWeatherData := api.FetchWeatherData(routePoints[len(routePoints)-1])
-	destinationWeatherData.Current.RelativeHumidity = GetRelativeHumidity(destinationWeatherData.Current.DewPoint, destinationWeatherData.Current.Temp)
+	// // Fetch the weather data for source and destination and we will use the
+	// // average of the both for any point in route to get the weather measurement
+	// sourceWeatherData := api.FetchWeatherData(routePoints[0])
+	// sourceWeatherData.Current.RelativeHumidity = GetRelativeHumidity(sourceWeatherData.Current.DewPoint, sourceWeatherData.Current.Temp)
+	// destinationWeatherData := api.FetchWeatherData(routePoints[len(routePoints)-1])
+	// destinationWeatherData.Current.RelativeHumidity = GetRelativeHumidity(destinationWeatherData.Current.DewPoint, destinationWeatherData.Current.Temp)
 
-	inputFeatures := GetInputFeatures(sourceWeatherData, destinationWeatherData, delayCode) // except IPM
+	// inputFeatures := GetInputFeatures(sourceWeatherData, destinationWeatherData, delayCode) // except IPM
 
-	// fetching the aqi values for the points in the route
-	var totalRouteExposure float64
-	for j := 0; j < len(routePoints); j++ {
-		// fetch the aqi values for the points in the routes
-		if routePoints[j] == nil /* || routePointTime[j] == nil */ {
-			continue
-		}
-		pm25, err := api.FetchAQIData(routePoints[j], delayCode)
-		checkErrNil(err)
-		inputFeatures.IPM = pm25
+	// // fetching the aqi values for the points in the route
+	// var totalRouteExposure float64
+	// for j := 0; j < len(routePoints); j++ {
+	// 	// fetch the aqi values for the points in the routes
+	// 	if routePoints[j] == nil /* || routePointTime[j] == nil */ {
+	// 		continue
+	// 	}
+	// 	pm25, err := api.FetchAQIData(routePoints[j], delayCode)
+	// 	checkErrNil(err)
+	// 	inputFeatures.IPM = pm25
 
-		// call the aws sagemaker and get the predicted value of pm25 concentration.
-		fpm, err := api.GetPredictedPm25(inputFeatures, delayCode)
-		checkErrNil(err)
+	// 	// call the aws sagemaker and get the predicted value of pm25 concentration.
+	// 	fpm, err := api.GetPredictedPm25(inputFeatures, delayCode)
+	// 	checkErrNil(err)
 
-		// calculate the total exposure based on that.
-		print("\n\nPartial Exposure: ", totalRouteExposure, " # ", fpm, " # ", routePointTime[j])
-		totalRouteExposure += fpm * routePointTime[j] / 3600 // converting time to hours
-	}
+	// 	// calculate the total exposure based on that.
+	// 	fmt.Println("\n\nPartial Exposure: ", totalRouteExposure, " # ", fpm, " # ", routePointTime[j])
+	// 	totalRouteExposure += fpm * routePointTime[j] / 3600 // converting time to hours
+	// }
+
+	var totalRouteExposure float64 = GetRouteExposureFromRoutePoints(routePoints, routePointTime, delayCode)
 
 	route.TotalExposure = totalRouteExposure
 	fmt.Println("&&&&&&&&&&&&&&&&The total exposure for the route is&&&&&&&&&&&&&&&: ", totalRouteExposure)

@@ -30,7 +30,7 @@ func FetchWeatherData(location []float64) openweather.WeatherData {
 
 	weatherUrl := baseUrl + weatherParams.Encode()
 
-	fmt.Println("The Query url is: ", weatherUrl)
+	// fmt.Println("The Query url is: ", weatherUrl)
 
 	resp, err := http.Get(weatherUrl)
 	checkErrNil(err)
