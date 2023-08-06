@@ -59,7 +59,7 @@ type RouteList struct {
 	RoutePref   string    `json:"route_preference"`
 	Fastest     Path     `json:"fastest"`
 	Shortest    Path     `json:"shortest"`
-	Leap        Path     `json:"leap"`
-	Lco2        Path     `json:"lco2"`
+	LeapG        Path     `json:"leap_graphhopper"`
+	Lco2G        Path     `json:"lco2_graphhopper"`
 	Balanced    Path     `json:"balanced"`
 }

@@ -100,6 +100,6 @@ type RouteList struct {
 	Leap        Route       `json:"leap"`
 	Lco2        Route       `json:"lco2"`
 	Balanced    Route       `json:"balanced"`
-	LeapG       models.Path `json:"leap_grahhopper"`
+	LeapG       models.Path `json:"leap_graphhopper"`
 	Lco2G       models.Path `json:"lco2_graphhopper"`
 }
