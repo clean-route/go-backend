@@ -23,7 +23,7 @@ import (
 type formData struct {
 	Source          [2]float64 `json:"source"`
 	Destination     [2]float64 `json:"destination"`
-	DelayCode       uint8      `json:"delay_code"`
+	DelayCode       uint8      `json:"delayCode"`
 	Mode            string     `json:"mode"`
 	RoutePreference string     `json:"route_preference,omitempty"`
 }

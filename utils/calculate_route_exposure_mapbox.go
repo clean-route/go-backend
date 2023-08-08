@@ -5,6 +5,7 @@ import (
 	"log"
 
 	api "github.com/sadityakumar9211/clean-route-backend/api"
+	"github.com/sadityakumar9211/clean-route-backend/models"
 	mapbox "github.com/sadityakumar9211/clean-route-backend/models/mapbox"
 )
 
@@ -127,11 +128,14 @@ func GetRouteExposureFromRoutePoints(routePoints [][]float64, routePointTime []f
 	destinationWeatherData.Current.RelativeHumidity = GetRelativeHumidity(destinationWeatherData.Current.DewPoint, destinationWeatherData.Current.Temp)
 
 	inputFeatures := GetInputFeatures(sourceWeatherData, destinationWeatherData, delayCode) // except IPM
+	inputFeatures.DelayCode = delayCode
 
 	// fetching the aqi values for the points in the route
 
 	var totalRouteExposure float64
+	var df []models.FeatureVector
 
+	// constructing the dataframe (input features along the entire route)
 	for j := 0; j < len(routePoints); j++ {
 		if routePoints[j] == nil {
 			continue
@@ -140,14 +144,28 @@ func GetRouteExposureFromRoutePoints(routePoints [][]float64, routePointTime []f
 		checkErrNil(err)
 		inputFeatures.IPM = pm25
 
+		
 		// call the aws ec2 instance and get the predicted value of pm25 concentration.
-		fpm, err := api.GetPredictedPm25(inputFeatures, delayCode)
-		checkErrNil(err)
+		df = append(df, inputFeatures)
+		// fpm, err := api.GetPredictedPm25(inputFeatures, delayCode)
+		// checkErrNil(err)
 
-		// Calculate the total exposure based on that.
-		fmt.Println("\n\nPartial Exposure: ", totalRouteExposure, " # ", fpm, " # ", routePointTime[j])
-		totalRouteExposure += fpm * routePointTime[j] / 3600  // converting time to hours
+		// // Calculate the total exposure based on that.
+		// fmt.Println("\n\nPartial Exposure: ", totalRouteExposure, " # ", fpm, " # ", routePointTime[j])
+		// totalRouteExposure += fpm * routePointTime[j] / 3600  // converting time to hours
 	}
+
+	// making the api call to get the entire
+	fpmVec, err := api.GetPredictedPm25(df)
+	checkErrNil(err)
+
+	// calculating the total exposure 
+	for j:= 0; j< len(routePoints); j++ {
+		// calculate the total exposure using the predicted fpm
+		fmt.Println("\n\nPartial Exposure: ", totalRouteExposure, " # ", fpmVec[j], " # ", routePointTime[j])
+		totalRouteExposure += fpmVec[j] * routePointTime[j] / 3600  // converting time to hours
+	}
+
 
 	return totalRouteExposure
 }

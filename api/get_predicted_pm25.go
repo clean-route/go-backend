@@ -11,10 +11,10 @@ import (
 )
 
 type Post struct {
-	FPM float64 `json:"fpm"`
+	FPMVec []float64 `json:"fpm_vec"`
 }
 
-func GetPredictedPm25(inputFeatures models.FeatureVector, delayCode uint8) (float64, error) {
+func GetPredictedPm25(df []models.FeatureVector) ([]float64, error) {
 
 	awsModelEndpoint, awsModelEndpointError := viper.Get("AWS_MODEL_ENDPOINT").(string)
 	if !awsModelEndpointError {
@@ -23,8 +23,7 @@ func GetPredictedPm25(inputFeatures models.FeatureVector, delayCode uint8) (floa
 
 	// fmt.Println("The Query url is: ", awsModelEndpoint)
 
-	inputFeatures.DelayCode = delayCode
-	jsonData, err := json.Marshal(inputFeatures)
+	jsonData, err := json.Marshal(df)
 	checkErrNil(err)
 
 	r, err := http.NewRequest("POST", awsModelEndpoint, bytes.NewBuffer(jsonData))
@@ -50,10 +49,10 @@ func GetPredictedPm25(inputFeatures models.FeatureVector, delayCode uint8) (floa
 
 	if resp.StatusCode != http.StatusOK {
 		log.Fatal("Error while making calling API endpoint", err)
-		return 0, err
+		return nil, err
 	}
 
 	// fmt.Println("++++++++++++++ Inside the get predicted pm2.5 ++++++++++++++++")
 	// fmt.Println("Acutal: ", inputFeatures.IPM, "Predicted: ", post.FPM)
-	return post.FPM, nil
+	return post.FPMVec, nil
 }
