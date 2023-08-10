@@ -565,7 +565,12 @@ func main() {
 	router.GET("/books", getBooks)
 	router.POST("/route", findRoute)
 	router.POST("all-routes", findAllRoutes)
-	router.Run("localhost:8081")
+
+	if os.Getenv("RAILWAY") == "true" {
+		router.Run("0.0.0.0:" + "8080")
+	} else {
+		router.Run("localhost:8080")
+	}
 }
 
 func checkErrNil(err error) {
