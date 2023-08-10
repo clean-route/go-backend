@@ -34,13 +34,10 @@ func findMapboxRoute(source [2]float64, destination [2]float64, delayCode uint8)
 
 	var mapboxAccessToken string
 	var mapboxAccessTokenError bool
-	if os.Getenv("RAILWAY") == "true" {
-		mapboxAccessToken = os.Getenv("MAPBOX_API_KEY")
-	} else {
-		mapboxAccessToken, mapboxAccessTokenError = viper.Get("MAPBOX_API_KEY").(string)
-		if !mapboxAccessTokenError {
-			log.Fatalf("Invalid type assertion")
-		}
+
+	mapboxAccessToken, mapboxAccessTokenError = viper.Get("MAPBOX_API_KEY").(string)
+	if !mapboxAccessTokenError {
+		log.Fatalf("Invalid type assertion")
 	}
 
 	localTime := time.Now()
@@ -88,13 +85,9 @@ func findGraphhopperRoute(source [2]float64, destination [2]float64, mode string
 	var graphhopperApikey string
 	var graphhopperApikeyError bool
 
-	if os.Getenv("RAILWAY") == "true" {
-		graphhopperApikey = os.Getenv("GRAPHHOPPER_API_KEY")
-	} else {
-		graphhopperApikey, graphhopperApikeyError = viper.Get("GRAPHHOPPER_API_KEY").(string)
-		if !graphhopperApikeyError {
-			log.Fatal("Found GraphHopper API key: ", graphhopperApikeyError)
-		}
+	graphhopperApikey, graphhopperApikeyError = viper.Get("GRAPHHOPPER_API_KEY").(string)
+	if !graphhopperApikeyError {
+		log.Fatal("Found GraphHopper API key: ", graphhopperApikeyError)
 	}
 
 	params := url.Values{}
@@ -548,15 +541,15 @@ func getBooks(c *gin.Context) {
 }
 
 func SetReferrerPolicy() gin.HandlerFunc {
-    return func(c *gin.Context) {
-        c.Header("Referrer-Policy", "no-referrer")
-        c.Next()
-    }
+	return func(c *gin.Context) {
+		c.Header("Referrer-Policy", "no-referrer")
+		c.Next()
+	}
 }
 
 func main() {
 	gin.SetMode(gin.ReleaseMode)
-	if os.Getenv("RAILWAY") != "true" {
+	// if os.Getenv("RAILWAY") != "true" {
 		// viper.SetConfigType("env")
 		// viper.AddConfigPath(".")
 		// viper.SetConfigFile(".env")
@@ -571,7 +564,7 @@ func main() {
 		if err != nil {
 			log.Fatalf("Error while reading config file %s", err)
 		}
-	}
+	// }
 
 	router := gin.Default()
 
