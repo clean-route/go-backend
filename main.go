@@ -527,8 +527,17 @@ func findAllRoutes(c *gin.Context) {
 	}
 }
 
+func getBooks(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Hello, World!",
+	})
+}
+
 func main() {
+	viper.SetConfigType("env")
+	viper.AddConfigPath(".")
 	viper.SetConfigFile(".env")
+	// viper.SetConfigFile(".env")
 	err := viper.ReadInConfig()
 	if err != nil {
 		log.Fatalf("Error while reading config file %s", err)
@@ -536,7 +545,7 @@ func main() {
 
 	router := gin.Default()
 	router.Use(cors.Default())
-	// router.GET("/books", getBooks)
+	router.GET("/books", getBooks)
 	router.POST("/route", findRoute)
 	router.POST("all-routes", findAllRoutes)
 	router.Run("localhost:8081")
