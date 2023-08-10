@@ -548,6 +548,7 @@ func getBooks(c *gin.Context) {
 }
 
 func main() {
+	gin.SetMode(gin.ReleaseMode)
 	if os.Getenv("RAILWAY") != "true" {
 		viper.SetConfigType("env")
 		viper.AddConfigPath(".")
@@ -569,7 +570,7 @@ func main() {
 	if os.Getenv("RAILWAY") == "true" {
 		router.Run("0.0.0.0:" + "8080")
 	} else {
-		router.Run("localhost:8080")
+		router.Run()
 	}
 }
 
