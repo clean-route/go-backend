@@ -557,10 +557,15 @@ func SetReferrerPolicy() gin.HandlerFunc {
 func main() {
 	gin.SetMode(gin.ReleaseMode)
 	if os.Getenv("RAILWAY") != "true" {
-		viper.SetConfigType("env")
-		viper.AddConfigPath(".")
-		viper.SetConfigFile(".env")
+		// viper.SetConfigType("env")
+		// viper.AddConfigPath(".")
+		// viper.SetConfigFile(".env")
+		// viper.ReadInConfig()
+
+		viper.SetConfigFile("ENV")
 		viper.ReadInConfig()
+		viper.AutomaticEnv()
+
 		// viper.SetConfigFile(".env")
 		err := viper.ReadInConfig()
 		if err != nil {
@@ -578,7 +583,7 @@ func main() {
 	router.POST("all-routes", findAllRoutes)
 
 	if os.Getenv("RAILWAY") == "true" {
-		router.Run("0.0.0.0:" + "8080")
+		router.Run()
 	} else {
 		router.Run()
 	}
