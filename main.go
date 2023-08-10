@@ -547,6 +547,13 @@ func getBooks(c *gin.Context) {
 	})
 }
 
+func SetReferrerPolicy() gin.HandlerFunc {
+    return func(c *gin.Context) {
+        c.Header("Referrer-Policy", "no-referrer")
+        c.Next()
+    }
+}
+
 func main() {
 	gin.SetMode(gin.ReleaseMode)
 	if os.Getenv("RAILWAY") != "true" {
@@ -562,7 +569,10 @@ func main() {
 	}
 
 	router := gin.Default()
+
+	router.Use(SetReferrerPolicy())
 	router.Use(cors.Default())
+
 	router.GET("/books", getBooks)
 	router.POST("/route", findRoute)
 	router.POST("all-routes", findAllRoutes)
