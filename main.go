@@ -34,10 +34,13 @@ func findMapboxRoute(source [2]float64, destination [2]float64, delayCode uint8)
 
 	var mapboxAccessToken string
 	var mapboxAccessTokenError bool
-
-	mapboxAccessToken, mapboxAccessTokenError = viper.Get("MAPBOX_API_KEY").(string)
-	if !mapboxAccessTokenError {
-		log.Fatalf("Invalid type assertion")
+	if os.Getenv("RAILWAY") == "true" {
+		mapboxAccessToken = os.Getenv("MAPBOX_API_KEY")
+	} else {
+		mapboxAccessToken, mapboxAccessTokenError = viper.Get("MAPBOX_API_KEY").(string)
+		if !mapboxAccessTokenError {
+			log.Fatalf("Invalid type assertion")
+		}
 	}
 
 	localTime := time.Now()
@@ -85,9 +88,13 @@ func findGraphhopperRoute(source [2]float64, destination [2]float64, mode string
 	var graphhopperApikey string
 	var graphhopperApikeyError bool
 
-	graphhopperApikey, graphhopperApikeyError = viper.Get("GRAPHHOPPER_API_KEY").(string)
-	if !graphhopperApikeyError {
-		log.Fatal("Found GraphHopper API key: ", graphhopperApikeyError)
+	if os.Getenv("RAILWAY") == "true" {
+		graphhopperApikey = os.Getenv("GRAPHHOPPER_API_KEY")
+	} else {
+		graphhopperApikey, graphhopperApikeyError = viper.Get("GRAPHHOPPER_API_KEY").(string)
+		if !graphhopperApikeyError {
+			log.Fatal("Found GraphHopper API key: ", graphhopperApikeyError)
+		}
 	}
 
 	params := url.Values{}
@@ -550,25 +557,29 @@ func SetReferrerPolicy() gin.HandlerFunc {
 func main() {
 	gin.SetMode(gin.ReleaseMode)
 	// if os.Getenv("RAILWAY") != "true" {
-		// viper.SetConfigType("env")
-		// viper.AddConfigPath(".")
-		// viper.SetConfigFile(".env")
-		// viper.ReadInConfig()
+	viper.SetConfigType("env")
+	// viper.AddConfigPath(".")
+	// viper.SetConfigFile(".env")
+	// viper.ReadInConfig()
 
+	if os.Getenv("RAILWAY") == "true" {
 		viper.SetConfigFile("ENV")
-		viper.ReadInConfig()
-		viper.AutomaticEnv()
-
-		// viper.SetConfigFile(".env")
-		err := viper.ReadInConfig()
-		if err != nil {
-			log.Fatalf("Error while reading config file %s", err)
-		}
+	} else {
+		viper.SetConfigFile(".env")
+	}
+	
+	viper.ReadInConfig()
+	viper.AutomaticEnv()
+	// viper.SetConfigFile(".env")
+	err := viper.ReadInConfig()
+	if err != nil {
+		log.Fatalf("Error while reading config file %s", err)
+	}
 	// }
 
 	router := gin.Default()
 
-	router.Use(SetReferrerPolicy())
+	// router.Use(SetReferrerPolicy())
 	router.Use(cors.Default())
 
 	router.GET("/books", getBooks)
