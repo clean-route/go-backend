@@ -1,5 +1,5 @@
 # Use an official Go runtime as a parent image
-FROM golang:1.20.6-alpine3.17
+FROM golang:1.20
 
 RUN mkdir /app
 
@@ -7,6 +7,9 @@ ADD . /app
 
 # Set the working directory inside the container
 WORKDIR /app
+
+# Installing the dependencies
+RUN go get
 
 # Build the Go application
 RUN go build -o main .

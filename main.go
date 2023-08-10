@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"sort"
 	"time"
 
@@ -31,9 +32,15 @@ type formData struct {
 func findMapboxRoute(source [2]float64, destination [2]float64, delayCode uint8) mapbox.RouteData {
 	baseUrl := "https://api.mapbox.com/directions/v5/mapbox/driving-traffic/" + fmt.Sprintf("%f,%f;%f,%f", source[0], source[1], destination[0], destination[1])
 
-	mapboxAccessToken, mapboxAccessTokenError := viper.Get("MAPBOX_API_KEY").(string)
-	if !mapboxAccessTokenError {
-		log.Fatalf("Invalid type assertion")
+	var mapboxAccessToken string
+	var mapboxAccessTokenError bool
+	if os.Getenv("RAILWAY") == "true" {
+		mapboxAccessToken = os.Getenv("MAPBOX_API_KEY")
+	} else {
+		mapboxAccessToken, mapboxAccessTokenError = viper.Get("MAPBOX_API_KEY").(string)
+		if !mapboxAccessTokenError {
+			log.Fatalf("Invalid type assertion")
+		}
 	}
 
 	localTime := time.Now()
@@ -78,9 +85,16 @@ func findMapboxRoute(source [2]float64, destination [2]float64, delayCode uint8)
 func findGraphhopperRoute(source [2]float64, destination [2]float64, mode string) graphhopper.RouteData {
 	baseUrl := "https://graphhopper.com/api/1/route?"
 
-	graphhopperApikey, graphhopperApikeyError := viper.Get("GRAPHHOPPER_API_KEY").(string)
-	if !graphhopperApikeyError {
-		log.Fatal("Found GraphHopper API key: ", graphhopperApikeyError)
+	var graphhopperApikey string
+	var graphhopperApikeyError bool
+
+	if os.Getenv("RAILWAY") == "true" {
+		graphhopperApikey = os.Getenv("GRAPHHOPPER_API_KEY")
+	} else {
+		graphhopperApikey, graphhopperApikeyError = viper.Get("GRAPHHOPPER_API_KEY").(string)
+		if !graphhopperApikeyError {
+			log.Fatal("Found GraphHopper API key: ", graphhopperApikeyError)
+		}
 	}
 
 	params := url.Values{}
@@ -537,6 +551,7 @@ func main() {
 	viper.SetConfigType("env")
 	viper.AddConfigPath(".")
 	viper.SetConfigFile(".env")
+	viper.ReadInConfig()
 	// viper.SetConfigFile(".env")
 	err := viper.ReadInConfig()
 	if err != nil {

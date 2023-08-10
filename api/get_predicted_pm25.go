@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/sadityakumar9211/clean-route-backend/models"
 	"github.com/spf13/viper"
@@ -16,9 +17,16 @@ type Post struct {
 
 func GetPredictedPm25(df []models.FeatureVector) ([]float64, error) {
 
-	awsModelEndpoint, awsModelEndpointError := viper.Get("AWS_MODEL_ENDPOINT").(string)
-	if !awsModelEndpointError {
-		log.Fatalf("Invalid type assertion")
+	var awsModelEndpoint string
+	var awsModelEndpointError bool
+
+	if os.Getenv("RAILWAY") == "true" {
+		awsModelEndpoint = os.Getenv("AWS_MODEL_ENDPOINT")
+	} else {
+		awsModelEndpoint, awsModelEndpointError = viper.Get("AWS_MODEL_ENDPOINT").(string)
+		if !awsModelEndpointError {
+			log.Fatalf("Invalid type assertion")
+		}
 	}
 
 	// fmt.Println("The Query url is: ", awsModelEndpoint)
@@ -36,7 +44,7 @@ func GetPredictedPm25(df []models.FeatureVector) ([]float64, error) {
 	resp, err := client.Do(r)
 	checkErrNil(err)
 
-	if resp.StatusCode != http.StatusOK{
+	if resp.StatusCode != http.StatusOK {
 		log.Fatal("The Amazon EC2 instance is not responding...Got status code: ", resp.StatusCode)
 	}
 

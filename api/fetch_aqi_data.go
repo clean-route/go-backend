@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 
 	waqi "github.com/sadityakumar9211/clean-route-backend/models/waqi"
 	"github.com/spf13/viper"
@@ -16,9 +17,15 @@ import (
 func FetchAQIData(location []float64, delayCode uint8) (float64, error) {
 	baseUrl := "https://api.waqi.info/feed/geo:" + fmt.Sprintf("%f;%f/?", location[1], location[0])
 
-	waqiAccessToken, waqiAccessTokenError := viper.Get("WAQI_API_KEY").(string)
-	if !waqiAccessTokenError {
-		log.Fatalf("Invalid type assertion")
+	var waqiAccessToken string
+	var waqiAccessTokenError bool
+	if os.Getenv("RAILWAY") == "true" {
+		waqiAccessToken = os.Getenv("WAQI_API_KEY")
+	} else {
+		waqiAccessToken, waqiAccessTokenError = viper.Get("WAQI_API_KEY").(string)
+		if !waqiAccessTokenError {
+			log.Fatalf("Invalid type assertion")
+		}
 	}
 
 	params := url.Values{}
