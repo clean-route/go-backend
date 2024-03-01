@@ -3,6 +3,15 @@ This is the backend repository of CleanRoute application. The parent repo can be
 
 >> Please use GITBASH for as Terminal for typing your commands. 
 
+### IMPORTANT
+Before you begin with frontend setup: Make sure you've completed the backend setup and the server is up and running.
+
+Recommended steps for bootstrapping the servers: 
+1. Setup and run the ML server
+2. Setup and run Go backend server
+3. Setup and run frontend client
+
+
 ### Prerequisites
 1. Make sure you have Go installed in your system. This [article](https://mindmajix.com/how-to-install-golang) could help with that. 
  - You can verify that `Go` is installed by running `go version` command and getting a version similar to 1.20 or 1.21 or 1.22
