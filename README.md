@@ -1,7 +1,7 @@
 # CleanRoute Backend 
 This is the backend repository of CleanRoute application. The parent repo can be found [here](https://github.com/sadityakumar9211/clean-route).
 
->> Please use GITBASH for as Terminal for typing your commands. 
+>> Please use bash/zsh shell for typing commands. Windows users please use GitBash for this purpose.
 
 ### IMPORTANT
 Before you begin with frontend setup: Make sure you've completed the backend setup and the server is up and running.
