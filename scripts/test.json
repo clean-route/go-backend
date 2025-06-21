@@ -1,0 +1,10 @@
+{
+  "source": [80.2427, 13.050513],
+  "destination": [73.856285, 18.515669],
+  "mode": "driving-traffic",
+  "route_preference": "all",
+  "delayCode": 0,
+  "vehicleMass": 1500,
+  "condition": "normal",
+  "engineType": "diesel"
+} 

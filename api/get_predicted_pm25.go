@@ -9,6 +9,7 @@ import (
 
 	"github.com/spf13/viper"
 
+	"github.com/clean-route/go-backend/internal/logger"
 	"github.com/clean-route/go-backend/internal/models"
 )
 
@@ -26,42 +27,71 @@ func GetPredictedPm25(df []models.FeatureVector) ([]float64, error) {
 	} else {
 		awsModelEndpoint, awsModelEndpointError = viper.Get("AWS_MODEL_ENDPOINT").(string)
 		if !awsModelEndpointError {
+			logger.Error("Invalid AWS model endpoint configuration")
 			log.Fatalf("Invalid type assertion")
 		}
 	}
 
-	// fmt.Println("The Query url is: ", awsModelEndpoint)
+	logger.Debug("Calling AWS PM2.5 prediction API",
+		"endpoint", awsModelEndpoint,
+		"features_count", len(df),
+	)
 
 	jsonData, err := json.Marshal(df)
-	checkErrNil(err)
+	if err != nil {
+		logger.Error("Failed to marshal feature vector data",
+			"error", err.Error(),
+			"features_count", len(df),
+		)
+		return nil, err
+	}
 
 	r, err := http.NewRequest("POST", awsModelEndpoint, bytes.NewBuffer(jsonData))
-	checkErrNil(err)
+	if err != nil {
+		logger.Error("Failed to create HTTP request for AWS API",
+			"error", err.Error(),
+			"endpoint", awsModelEndpoint,
+		)
+		return nil, err
+	}
 
 	r.Header.Add("Content-Type", "application/json")
 
-	// fmt.Println("Just before making the request...")
 	client := &http.Client{}
 	resp, err := client.Do(r)
-	checkErrNil(err)
+	if err != nil {
+		logger.Error("Failed to call AWS PM2.5 prediction API",
+			"error", err.Error(),
+			"endpoint", awsModelEndpoint,
+		)
+		return nil, err
+	}
 
 	if resp.StatusCode != http.StatusOK {
+		logger.Error("AWS PM2.5 prediction API returned error status",
+			"status_code", resp.StatusCode,
+			"endpoint", awsModelEndpoint,
+		)
 		log.Fatal("The Amazon EC2 instance is not responding...Got status code: ", resp.StatusCode)
 	}
 
 	defer resp.Body.Close()
-	// fmt.Println("After the Request...")
+
 	post := &Post{}
 
 	err = json.NewDecoder(resp.Body).Decode(post)
-	checkErrNil(err)
-
-	if resp.StatusCode != http.StatusOK {
-		log.Fatal("Error while making calling API endpoint", err)
+	if err != nil {
+		logger.Error("Failed to decode AWS PM2.5 prediction response",
+			"error", err.Error(),
+			"endpoint", awsModelEndpoint,
+		)
 		return nil, err
 	}
 
-	// fmt.Println("++++++++++++++ Inside the get predicted pm2.5 ++++++++++++++++")
-	// fmt.Println("Acutal: ", inputFeatures.IPM, "Predicted: ", post.FPM)
+	logger.Debug("Successfully received PM2.5 predictions from AWS",
+		"predictions_count", len(post.FPMVec),
+		"endpoint", awsModelEndpoint,
+	)
+
 	return post.FPMVec, nil
 }

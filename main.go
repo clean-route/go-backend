@@ -3,11 +3,11 @@
 package main
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/clean-route/go-backend/internal/config"
 	"github.com/clean-route/go-backend/internal/handlers"
+	"github.com/clean-route/go-backend/internal/logger"
 	"github.com/clean-route/go-backend/internal/middleware"
 
 	"github.com/gin-contrib/cors"
@@ -20,18 +20,33 @@ const (
 )
 
 func main() {
+	// Initialize logger
+	if err := logger.Init(); err != nil {
+		panic("Failed to initialize logger: " + err.Error())
+	}
+	defer logger.Sync()
+
+	logger.Info("Starting clean-route service",
+		"service", serviceName,
+		"port", port,
+	)
+
 	// Initialize configuration
 	if err := config.Init(); err != nil {
-		log.Fatalf("Failed to initialize configuration: %v", err)
+		logger.Fatal("Failed to initialize configuration", "error", err.Error())
 	}
 
 	// Set Gin mode
 	gin.SetMode(gin.ReleaseMode)
 
 	// Create router
-	router := gin.Default()
+	router := gin.New()
 
 	// Add middleware
+	router.Use(middleware.ErrorHandlerMiddleware())
+	router.Use(middleware.RequestIDMiddleware())
+	router.Use(middleware.LoggingMiddleware())
+	router.Use(middleware.ErrorResponseMiddleware())
 	router.Use(cors.Default())
 	router.Use(middleware.SetReferrerPolicy())
 
@@ -61,8 +76,8 @@ func main() {
 	}
 
 	// Start server
-	log.Printf("Starting server on port %s", port)
+	logger.Info("Server starting", "port", port)
 	if err := router.Run(":" + port); err != nil {
-		log.Fatalf("Failed to start server: %v", err)
+		logger.Fatal("Failed to start server", "error", err.Error())
 	}
 }

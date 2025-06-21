@@ -41,8 +41,8 @@ func CalculateRouteExposureGraphhopper(route graphhopper.Path, delayCode uint8) 
 			skippedDistance = 0
 			skippedTime = 0
 
-			chunks := int(steps[j].Distance / 2000)                              // number of chunks
-			timeChunk := int((float64(steps[j].Time) * 0.001) / float64(chunks)) // time for each chunk
+			chunks := int(steps[j].Distance / 2000)                       // number of chunks
+			timeChunk := float64(steps[j].Time) * 0.001 / float64(chunks) // time for each chunk (convert ms to seconds)
 
 			chunkLength := (steps[j].Interval[1] - steps[j].Interval[0]) / chunks // number of coordinates in each chunk
 
@@ -50,7 +50,7 @@ func CalculateRouteExposureGraphhopper(route graphhopper.Path, delayCode uint8) 
 				startChunkIndex := steps[j].Interval[0] + k*chunkLength
 				index := (int(startChunkIndex+startChunkIndex+chunkLength) / 2) + 1
 				routePoints = append(routePoints, routeCoordinates[index][:])
-				routePointTime = append(routePointTime, float64(timeChunk))
+				routePointTime = append(routePointTime, timeChunk)
 			}
 		}
 	}
@@ -58,7 +58,7 @@ func CalculateRouteExposureGraphhopper(route graphhopper.Path, delayCode uint8) 
 	// for each route the points are adding in this array
 
 	// fmt.Println(routePoints)
-	fmt.Println("The total points taken in the route is: ", len(routePoints))
+	// fmt.Println("The total points taken in the route is: ", len(routePoints))
 	// fmt.Println(routePointTime)
 
 	if delayCode == 0 {
@@ -71,7 +71,6 @@ func CalculateRouteExposureGraphhopper(route graphhopper.Path, delayCode uint8) 
 			}
 			pm25, err := api.FetchAQIData(routePoints[j], delayCode)
 			checkErrNil(err)
-			fmt.Println("The PM 2.5 concentration: ", pm25)
 			totalRouteExposure += pm25 * routePointTime[j] / 3600 // converting time to hours
 		}
 		route.TotalExposure = totalRouteExposure

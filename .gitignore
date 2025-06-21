@@ -49,6 +49,6 @@ tmp
 env.example
 
 vendor
-Dockerfile
 
 build/
+ERROR_HANDLING_AND_LOGGING.md

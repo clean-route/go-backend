@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/clean-route/go-backend/api"
@@ -61,7 +60,7 @@ func CalculateRouteExposureMapbox(route mapbox.Route, delayCode uint8) mapbox.Ro
 	// for each route the points are adding in this array
 
 	// fmt.Println(routePoints)
-	fmt.Println("The total points taken in the route is: ", len(routePoints))
+	// fmt.Println("The total points taken in the route is: ", len(routePoints))
 	// fmt.Println(routePointTime)
 
 	// fetching the aqi values for the points in the route
@@ -76,7 +75,6 @@ func CalculateRouteExposureMapbox(route mapbox.Route, delayCode uint8) mapbox.Ro
 			}
 			pm25, err := api.FetchAQIData(routePoints[j], delayCode)
 			checkErrNil(err)
-			fmt.Println("The PM 2.5 concentration: ", pm25)
 			totalRouteExposure += pm25 * routePointTime[j] / 3600 // converting time to hours
 		}
 		route.TotalExposure = totalRouteExposure
@@ -115,7 +113,7 @@ func CalculateRouteExposureMapbox(route mapbox.Route, delayCode uint8) mapbox.Ro
 
 	var totalRouteExposure float64 = GetRouteExposureFromRoutePoints(routePoints, routePointTime, delayCode)
 	route.TotalExposure = totalRouteExposure
-	fmt.Println("&&&&&&&&&&&&&&&&The total exposure for the route is&&&&&&&&&&&&&&&: ", totalRouteExposure)
+	// fmt.Println("&&&&&&&&&&&&&&&&The total exposure for the route is&&&&&&&&&&&&&&&: ", totalRouteExposure)
 	return route
 }
 
@@ -160,7 +158,7 @@ func GetRouteExposureFromRoutePoints(routePoints [][]float64, routePointTime []f
 	// calculating the total exposure
 	for j := 0; j < len(routePoints); j++ {
 		// calculate the total exposure using the predicted fpm
-		fmt.Println("\n\nPartial Exposure: ", totalRouteExposure, " # ", fpmVec[j], " # ", routePointTime[j])
+		// fmt.Println("\n\nPartial Exposure: ", totalRouteExposure, " # ", fpm, " # ", routePointTime[j])
 		totalRouteExposure += fpmVec[j] * routePointTime[j] / 3600 // converting time to hours
 	}
 

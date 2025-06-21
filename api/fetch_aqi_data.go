@@ -12,6 +12,7 @@ import (
 
 	"github.com/spf13/viper"
 
+	"github.com/clean-route/go-backend/internal/logger"
 	waqi "github.com/clean-route/go-backend/internal/models/waqi"
 )
 
@@ -25,6 +26,7 @@ func FetchAQIData(location []float64, delayCode uint8) (float64, error) {
 	} else {
 		waqiAccessToken, waqiAccessTokenError = viper.Get("WAQI_API_KEY").(string)
 		if !waqiAccessTokenError {
+			logger.Error("Invalid WAQI API key configuration")
 			log.Fatalf("Invalid type assertion")
 		}
 	}
@@ -34,17 +36,52 @@ func FetchAQIData(location []float64, delayCode uint8) (float64, error) {
 
 	waqiUrl := baseUrl + params.Encode()
 
+	// logger.Debug("Calling WAQI API",
+	// 	"url", baseUrl,
+	// 	"location", location,
+	// 	"delay_code", delayCode,
+	// )
+
 	resp, err := http.Get(waqiUrl)
-	checkErrNil(err)
+	if err != nil {
+		logger.Error("Failed to call WAQI API",
+			"error", err.Error(),
+			"url", baseUrl,
+			"location", location,
+		)
+		return 0, err
+	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != http.StatusOK {
+		logger.Error("WAQI API returned error status",
+			"status_code", resp.StatusCode,
+			"url", baseUrl,
+			"location", location,
+		)
+		return 0, fmt.Errorf("WAQI API returned status code: %d", resp.StatusCode)
+	}
+
 	body, err := io.ReadAll(resp.Body)
-	checkErrNil(err)
+	if err != nil {
+		logger.Error("Failed to read WAQI API response",
+			"error", err.Error(),
+			"url", baseUrl,
+			"location", location,
+		)
+		return 0, err
+	}
 
 	var waqiResponse waqi.APIResponse
 
 	err = json.Unmarshal([]byte(body), &waqiResponse)
 	if err != nil {
+		logger.Error("Failed to unmarshal WAQI API response",
+			"error", err.Error(),
+			"url", baseUrl,
+			"location", location,
+			"response_body", string(body),
+		)
 		log.Fatal("Error while unmarshling JSON: ", err)
 	}
 
@@ -61,14 +98,26 @@ func FetchAQIData(location []float64, delayCode uint8) (float64, error) {
 	// 2. We need to make api call to AWS Sagemaker and get the forecasted aqi value.
 
 	if waqiResponse.Status != "ok" {
+		logger.Error("WAQI API returned non-OK status",
+			"status", waqiResponse.Status,
+			"url", baseUrl,
+			"location", location,
+			"response_body", string(body),
+		)
 		return 0, errors.New("WAQI response is not 'OK' but: " + waqiResponse.Status)
 	} else {
-		return waqiResponse.Data.IAQI["pm25"].V, nil
+		pm25Value := waqiResponse.Data.IAQI["pm25"].V
+		// logger.Debug("Successfully fetched PM2.5 data from WAQI",
+		// 	"pm25_value", pm25Value,
+		// 	"location", location,
+		// )
+		return pm25Value, nil
 	}
 }
 
 func checkErrNil(err error) {
 	if err != nil {
+		logger.Error("API error occurred", "error", err.Error())
 		log.Fatal("Error: ", err)
 	}
 }
