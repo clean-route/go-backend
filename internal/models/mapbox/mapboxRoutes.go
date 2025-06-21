@@ -1,6 +1,6 @@
-package models
+package mapboxroutes
 
-import models "github.com/sadityakumar9211/clean-route-backend/models/graphhopper"
+import models "github.com/clean-route/go-backend/internal/models/graphhopper"
 
 // Define structs to represent the JSON data
 

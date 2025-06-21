@@ -4,7 +4,11 @@ import (
 	"os"
 	"strconv"
 
-	graphhopper "github.com/sadityakumar9211/clean-route-backend/models/graphhopper"
+	graphhopper "github.com/clean-route/go-backend/internal/models/graphhopper"
+)
+
+const (
+	acceleration_of_gravity = 9.8
 )
 
 func CalculateRouteEnergy(route graphhopper.Path, mode string, vehicleMass int, condition string, engineType string) float64 {
@@ -18,8 +22,6 @@ func CalculateRouteEnergy(route graphhopper.Path, mode string, vehicleMass int, 
 	if mass == 0 {
 		mass = GetMassFromMode(mode)
 	}
-
-	g := 9.8
 
 	segments := route.Instructions
 
@@ -40,7 +42,7 @@ func CalculateRouteEnergy(route graphhopper.Path, mode string, vehicleMass int, 
 		averageVelocity := distance / time
 
 		// Potential Energy
-		totalPotentialEnergy := float64(mass) * g * heightGain
+		totalPotentialEnergy := float64(mass) * acceleration_of_gravity * heightGain
 
 		// Kinetic Energy
 		totalKineticEnergy := 0.5 * float64(mass) * averageVelocity * averageVelocity

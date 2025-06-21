@@ -7,8 +7,9 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/sadityakumar9211/clean-route-backend/models"
 	"github.com/spf13/viper"
+
+	"github.com/clean-route/go-backend/internal/models"
 )
 
 type Post struct {

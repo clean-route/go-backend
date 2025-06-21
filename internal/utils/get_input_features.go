@@ -1,8 +1,8 @@
 package utils
 
 import (
-	"github.com/sadityakumar9211/clean-route-backend/models"
-	"github.com/sadityakumar9211/clean-route-backend/models/openweather"
+	"github.com/clean-route/go-backend/internal/models"
+	openweather "github.com/clean-route/go-backend/internal/models/openweather"
 )
 
 func GetInputFeatures(sourceWeather openweather.WeatherData, destinationWeather openweather.WeatherData, delayCode uint8) models.FeatureVector {

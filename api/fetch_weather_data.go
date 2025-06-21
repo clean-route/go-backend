@@ -8,8 +8,9 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/sadityakumar9211/clean-route-backend/models/openweather"
 	"github.com/spf13/viper"
+	
+	openweather "github.com/clean-route/go-backend/internal/models/openweather"
 )
 
 func FetchWeatherData(location []float64) openweather.WeatherData {

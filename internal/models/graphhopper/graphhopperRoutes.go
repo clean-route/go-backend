@@ -1,4 +1,4 @@
-package models
+package graphhopperroutes
 
 type Waypoint struct {
 	Type        string        `json:"type"`

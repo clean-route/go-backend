@@ -3,8 +3,8 @@ package utils
 import (
 	"fmt"
 
-	api "github.com/sadityakumar9211/clean-route-backend/api"
-	graphhopper "github.com/sadityakumar9211/clean-route-backend/models/graphhopper"
+	api "github.com/clean-route/go-backend/api"
+	graphhopper "github.com/clean-route/go-backend/internal/models/graphhopper"
 )
 
 func CalculateRouteExposureGraphhopper(route graphhopper.Path, delayCode uint8) graphhopper.Path {

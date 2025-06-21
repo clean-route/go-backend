@@ -10,8 +10,9 @@ import (
 	"net/url"
 	"os"
 
-	waqi "github.com/sadityakumar9211/clean-route-backend/models/waqi"
 	"github.com/spf13/viper"
+
+	waqi "github.com/clean-route/go-backend/internal/models/waqi"
 )
 
 func FetchAQIData(location []float64, delayCode uint8) (float64, error) {

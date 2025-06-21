@@ -1,4 +1,4 @@
-module github.com/sadityakumar9211/clean-route-backend
+module github.com/clean-route/go-backend
 
 go 1.20
 

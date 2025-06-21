@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"log"
 
-	api "github.com/sadityakumar9211/clean-route-backend/api"
-	"github.com/sadityakumar9211/clean-route-backend/models"
-	mapbox "github.com/sadityakumar9211/clean-route-backend/models/mapbox"
+	"github.com/clean-route/go-backend/api"
+	"github.com/clean-route/go-backend/internal/models"
+	mapbox "github.com/clean-route/go-backend/internal/models/mapbox"
 )
 
 func CalculateRouteExposureMapbox(route mapbox.Route, delayCode uint8) mapbox.Route {
@@ -119,8 +119,7 @@ func CalculateRouteExposureMapbox(route mapbox.Route, delayCode uint8) mapbox.Ro
 	return route
 }
 
-
-func GetRouteExposureFromRoutePoints(routePoints [][]float64, routePointTime []float64, delayCode uint8) float64 { 
+func GetRouteExposureFromRoutePoints(routePoints [][]float64, routePointTime []float64, delayCode uint8) float64 {
 	// Fetch the weather data for source and destination and we will use the average of the both for any point in route to get the weather measurement
 	sourceWeatherData := api.FetchWeatherData(routePoints[0])
 	sourceWeatherData.Current.RelativeHumidity = GetRelativeHumidity(sourceWeatherData.Current.DewPoint, sourceWeatherData.Current.Temp)
@@ -144,7 +143,6 @@ func GetRouteExposureFromRoutePoints(routePoints [][]float64, routePointTime []f
 		checkErrNil(err)
 		inputFeatures.IPM = pm25
 
-		
 		// call the aws ec2 instance and get the predicted value of pm25 concentration.
 		df = append(df, inputFeatures)
 		// fpm, err := api.GetPredictedPm25(inputFeatures, delayCode)
@@ -159,17 +157,15 @@ func GetRouteExposureFromRoutePoints(routePoints [][]float64, routePointTime []f
 	fpmVec, err := api.GetPredictedPm25(df)
 	checkErrNil(err)
 
-	// calculating the total exposure 
-	for j:= 0; j< len(routePoints); j++ {
+	// calculating the total exposure
+	for j := 0; j < len(routePoints); j++ {
 		// calculate the total exposure using the predicted fpm
 		fmt.Println("\n\nPartial Exposure: ", totalRouteExposure, " # ", fpmVec[j], " # ", routePointTime[j])
-		totalRouteExposure += fpmVec[j] * routePointTime[j] / 3600  // converting time to hours
+		totalRouteExposure += fpmVec[j] * routePointTime[j] / 3600 // converting time to hours
 	}
-
 
 	return totalRouteExposure
 }
-
 
 func checkErrNil(err error) {
 	if err != nil {
