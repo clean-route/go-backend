@@ -42,6 +42,13 @@ go.work
 
 tmp
 
+# Environment files
 .env
+.envrc
+.env.sample
+env.example
+
 vendor
 Dockerfile
+
+build/

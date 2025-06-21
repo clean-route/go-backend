@@ -1,0 +1,35 @@
+# API Keys - Replace with your actual API keys
+export MAPBOX_API_KEY="your_mapbox_api_key_here"
+export GRAPHHOPPER_API_KEY="your_graphhopper_api_key_here"
+export WAQI_API_KEY="your_waqi_api_key_here"
+export OPEN_WEATHER_API_KEY="your_openweather_api_key_here"
+
+# AWS Model Endpoint
+export AWS_MODEL_ENDPOINT="http://localhost:8000"
+
+# Emission Factors (kg CO2 per MJ of energy)
+# These factors determine the CO2 emissions for different fuel types
+# You can adjust these values based on your specific requirements
+export EMISSION_FACTOR_PETROL="0.069"
+export EMISSION_FACTOR_DIESEL="0.074"
+export EMISSION_FACTOR_CNG="0.056"
+export EMISSION_FACTOR_EV="0.0"
+
+# Vehicle Condition Factors
+# These factors represent efficiency degradation based on vehicle age
+# Higher values mean less efficient (more emissions)
+# You can adjust these values based on your research or requirements
+export CONDITION_FACTOR_NEW="1.0"      # New vehicle - baseline efficiency
+export CONDITION_FACTOR_GOOD="1.1"     # Good condition - slightly less efficient
+export CONDITION_FACTOR_AVERAGE="1.25" # Average condition - less efficient
+export CONDITION_FACTOR_OKAY="1.5"     # Okay condition - significantly less efficient
+
+# Deployment Environment
+export RAILWAY="false"
+
+# Setup Instructions:
+# 1. Copy this file to .envrc: cp .envrc.example .envrc
+# 2. Update the API keys with your actual values
+# 3. Adjust emission and condition factors as needed
+# 4. Run: direnv allow .
+# 5. The environment variables will be automatically loaded when you enter this directory 

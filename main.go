@@ -27,6 +27,9 @@ type formData struct {
 	DelayCode       uint8      `json:"delayCode"`
 	Mode            string     `json:"mode"`
 	RoutePreference string     `json:"route_preference,omitempty"`
+	VehicleMass     int        `json:"vehicle_mass"`
+	Condition       string     `json:"condition"`
+	EngineType      string     `json:"engine_type"`
 }
 
 func findMapboxRoute(source [2]float64, destination [2]float64, delayCode uint8) mapbox.RouteData {
@@ -152,6 +155,9 @@ func findRoute(c *gin.Context) {
 	delayCode := queryData.DelayCode
 	mode := queryData.Mode
 	routePref := queryData.RoutePreference
+	vehicleMass := queryData.VehicleMass
+	condition := queryData.Condition
+	engineType := queryData.EngineType
 
 	if mode == "driving-traffic" && (routePref == "fastest" || routePref == "balanced") {
 		fmt.Println("@@@@@@@@@@@@@@@@@@@@Mapbox Route@@@@@@@@@@@@@@")
@@ -176,7 +182,7 @@ func findRoute(c *gin.Context) {
 		for i := 0; i < len(routes.Routes) && i < len(energy_route.Paths); i++ {
 			routes.Routes[i] = utils.CalculateRouteExposureMapbox(routes.Routes[i], delayCode)
 			routes.Routes[i].Duration *= 1000
-			routes.Routes[i].TotalEnergy = utils.CalculateRouteEnergy(energy_route.Paths[i], mode)
+			routes.Routes[i].TotalEnergy = utils.CalculateRouteEnergy(energy_route.Paths[i], mode, vehicleMass, condition, engineType)
 			fmt.Println("Total Energy: ", routes.Routes[i].TotalEnergy)
 			fmt.Println("Distance: ", routes.Routes[i].Distance)
 			fmt.Println("Duration: ", routes.Routes[i].Duration)
@@ -229,7 +235,7 @@ func findRoute(c *gin.Context) {
 		var routes graphhopper.RouteData = findGraphhopperRoute(source, destination, mode)
 		for i := 0; i < len(routes.Paths); i++ {
 			routes.Paths[i] = utils.CalculateRouteExposureGraphhopper(routes.Paths[i], delayCode)
-			routes.Paths[i].TotalEnergy = utils.CalculateRouteEnergy(routes.Paths[i], mode)
+			routes.Paths[i].TotalEnergy = utils.CalculateRouteEnergy(routes.Paths[i], mode, vehicleMass, condition, engineType)
 		}
 
 		if mode == "car" {
@@ -334,6 +340,9 @@ func findAllRoutes(c *gin.Context) {
 	delayCode := queryData.DelayCode
 	mode := queryData.Mode
 	routePref := queryData.RoutePreference
+	vehicleMass := queryData.VehicleMass
+	condition := queryData.Condition
+	engineType := queryData.EngineType
 
 	// find the mapbox and graphhopper routes and then based on the mode and routePref sort and select the best route and return the route.
 	// But there is only mode and the routePref is all (i.e.)
@@ -349,7 +358,7 @@ func findAllRoutes(c *gin.Context) {
 		var routes graphhopper.RouteData = findGraphhopperRoute(source, destination, mode)
 		for i := 0; i < len(routes.Paths); i++ {
 			routes.Paths[i] = utils.CalculateRouteExposureGraphhopper(routes.Paths[i], delayCode)
-			routes.Paths[i].TotalEnergy = utils.CalculateRouteEnergy(routes.Paths[i], mode)
+			routes.Paths[i].TotalEnergy = utils.CalculateRouteEnergy(routes.Paths[i], mode, vehicleMass, condition, engineType)
 			fmt.Println("Distance: ", routes.Paths[i].Distance)
 			fmt.Println("Duration: ", routes.Paths[i].Time)
 			fmt.Println("Total Exposure: ", routes.Paths[i].TotalExposure)
@@ -460,7 +469,7 @@ func findAllRoutes(c *gin.Context) {
 
 			mapboxRoute.Routes[i].Duration *= 1000
 
-			mapboxRoute.Routes[i].TotalEnergy = utils.CalculateRouteEnergy(graphhopperRoute.Paths[i], mode)
+			mapboxRoute.Routes[i].TotalEnergy = utils.CalculateRouteEnergy(graphhopperRoute.Paths[i], mode, vehicleMass, condition, engineType)
 			graphhopperRoute.Paths[i].TotalEnergy = mapboxRoute.Routes[i].TotalEnergy
 
 			fmt.Println("Total Exposure: ", mapboxRoute.Routes[i].TotalExposure)
@@ -567,7 +576,7 @@ func main() {
 	} else {
 		viper.SetConfigFile(".env")
 	}
-	
+
 	viper.ReadInConfig()
 	viper.AutomaticEnv()
 	// viper.SetConfigFile(".env")
